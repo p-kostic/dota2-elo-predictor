@@ -92,7 +92,6 @@ namespace DOTA2MatchScraper
                         new System.IO.StreamWriter("D:\\Downloads\\matches\\filteredAll.json", true))
                     {
                         file.WriteLine(line);
-                        Console.WriteLine("Match added to file, rejected " + numberRejectedMatches + "so far.");
                     }
                 }
             }

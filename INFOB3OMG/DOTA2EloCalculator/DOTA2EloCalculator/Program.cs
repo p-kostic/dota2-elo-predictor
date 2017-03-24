@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Messaging;
+using System.Windows.Markup;
 
 namespace DOTA2EloCalculator
 {
@@ -141,6 +143,27 @@ namespace DOTA2EloCalculator
             double Rb = Math.Pow(10, b_rating/400);
             return Ra/(Ra + Rb);
 
+        }
+
+        /// <summary>
+        /// Calculate the standard deviation of the players' ELO rating
+        /// TODO: Eigenlijk sample standard deviation gebruiken (1st Answer: http://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list )
+        /// </summary>
+        /// <returns>The standard deviation of the playerElo Dictionary</returns>
+        static double CalculateStandardDeviation()
+        {
+            double average = CalculateMean();
+            return Math.Sqrt(playerElos.Values.Average(v => Math.Pow(v - average, 2)));
+        }
+
+        /// <summary>
+        /// Calculate the mean (average) ELO of all players
+        /// </summary>
+        /// <returns>The mean of the playerElo Dictionary</returns>
+        static double CalculateMean()
+        {
+            double average = playerElos.Values.Average();
+            return average;
         }
 
         const string outputfolder = @"D:\Downloads\matches";
