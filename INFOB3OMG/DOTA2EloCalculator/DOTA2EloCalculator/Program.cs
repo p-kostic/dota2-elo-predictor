@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Windows.Markup;
@@ -19,7 +21,21 @@ namespace DOTA2EloCalculator
         static void Main(string[] args)
         {
             // Use a streamreader to read te file.
-            string path = @"D:\Downloads\matches\filteredAll.json";
+            string path = @"D:\Downloads\matches\filtered100k.json";
+
+            long numberOfLines = 0;
+            using (FileStream fs1 = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (BufferedStream bs1 = new BufferedStream(fs1))
+            using (StreamReader sr = new StreamReader(bs1))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    numberOfLines++;
+                }
+            }
+
+
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (BufferedStream bs = new BufferedStream(fs))
             using (StreamReader sr = new StreamReader(bs))
@@ -81,6 +97,8 @@ namespace DOTA2EloCalculator
                     amountofMatches++;
                     Match match = new Match(radiant, dire);
 
+                    WriteToFileLogistic(match, "random");
+
                     UpdateElo(match);
                 }
             }
@@ -88,10 +106,14 @@ namespace DOTA2EloCalculator
             foreach (var entry in playerElos)
             {
                 if (entry.Value > 1200) // test om te zien of er wel players zijn die een beetje veel winnen
-                Console.WriteLine("id: {0} Elo: {1}", entry.Key, entry.Value);
+                    Console.WriteLine("id: {0} Elo: {1}", entry.Key, entry.Value);
             }
+
             Console.WriteLine("Amount of unique players: " + amountofPlayers);
             Console.WriteLine("Amount of matches: " + amountofMatches);
+            Console.WriteLine("Mean: " + CalculateMean());
+            Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
+            Console.WriteLine("Number of lines: " + numberOfLines);
             Console.ReadKey();
         }
 
@@ -99,7 +121,7 @@ namespace DOTA2EloCalculator
         {
             if (match.Radiant.AverageElo == 0.0 || match.Dire.AverageElo == 0.0)
                 throw new Exception("Radiant or Dire team do not have an AverageElo assigned, team size not 5");
-           
+
             // Calculate the transformed rating of each team using their average elo
             double transformedRadiant = Math.Pow(10, match.Radiant.AverageElo / 400);
             double transformedDire = Math.Pow(10, match.Dire.AverageElo / 400);
@@ -139,9 +161,9 @@ namespace DOTA2EloCalculator
         /// <returns></returns>
         static double WinProb(int a_rating, int b_rating)
         {
-            double Ra = Math.Pow(10, a_rating/400);
-            double Rb = Math.Pow(10, b_rating/400);
-            return Ra/(Ra + Rb);
+            double Ra = Math.Pow(10, a_rating / 400);
+            double Rb = Math.Pow(10, b_rating / 400);
+            return Ra / (Ra + Rb);
 
         }
 
@@ -167,19 +189,30 @@ namespace DOTA2EloCalculator
         }
 
         const string outputfolder = @"D:\Downloads\matches";
-        void WriteToFile(string text, string filename)
+        static void WriteToFileLogistic(Match match, string filename)
         {
-            string path = string.Format(@"{0}{1}.csv", outputfolder, filename);
+            // Calculate ELO difference (Radiant - Dire)
+            double eloDire = match.Dire.AverageElo;
+            double eloRadiant = match.Radiant.AverageElo;
+
+            double eloDifference = eloRadiant - eloDire;
+
+            char outcome = 'X';
+
+            if (match.Radiant.Won)
+                outcome = '1';
+            if (match.Dire.Won)
+                outcome = '0';
+
+            string text = string.Format("{0};{1}", eloDifference, outcome);
+
+            string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
             using (StreamWriter sw = new StreamWriter(path, true))
-                sw.Write(text);
+                sw.WriteLine(text);
         }
 
         // TODO: Accuracy van matches die we gaan predicten uitrekenen
         // TODO: Logaritmic loss: https://www.kaggle.com/wiki/LogLoss ??? en Logarithmic regression voor de paper
-        // TODO: Greene, W. H. (1999). Econometric analysis (4th ed.). Upper SaddleRiver, NJ: Prentice Hall.
-
-        // TODO: Welk programma? SPSS? R? Excel? Dafuq
-        // TODO: 
 
         // TODO: Variables voor models: Elo_Diff  The ELO rating difference between the two teams at the start of the match.
         // Calculated by subtracting the away team ELO rating from the home team ELO rating.A
