@@ -15,14 +15,18 @@ namespace DOTA2EloCalculator
     {
         // A dictionary that stores the Elo rating of a player, using the player as a key.
         static Dictionary<string, int> playerElos = new Dictionary<string, int>();
+
+        // Values to track the amount of players, and the amount of matches.
         static int amountofPlayers = 0;
         static int amountofMatches = 0;
 
         static void Main(string[] args)
         {
             // Use a streamreader to read te file.
-            string path = @"D:\Downloads\matches\filtered100k.json";
+            string path = @"filtered100k.json";
 
+            #region InitializeBacktesting
+            // Check the amount of lines, so we can quite reading when needed (used for backtesting).
             long numberOfLines = 0;
             using (FileStream fs1 = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (BufferedStream bs1 = new BufferedStream(fs1))
@@ -34,7 +38,7 @@ namespace DOTA2EloCalculator
                     numberOfLines++;
                 }
             }
-
+            #endregion
 
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (BufferedStream bs = new BufferedStream(fs))
@@ -54,7 +58,6 @@ namespace DOTA2EloCalculator
                     // Initialize the teams and a match
                     Team radiant = new Team();
                     Team dire = new Team();
-
 
                     // Since the players are nested in an array, we have to delve
                     // deeper into the tokens to retrieve this data for each individual player.
@@ -83,21 +86,24 @@ namespace DOTA2EloCalculator
                         // int winStatus = Convert.ToInt32(playerHasWon);
 
                         // Add the player to the corresponding team.
-                        if (!playerTeam) // dire
-                        {
-                            dire.AddPlayer(new Player(accountID, playerElos[accountID]));    // Get the elo from the dictionary
-                            dire.Won = playerHasWon;
-                        }
-                        else            // radiant
+                        if (playerTeam) // radiant
                         {
                             radiant.AddPlayer(new Player(accountID, playerElos[accountID])); // Get the elo from the dictionary
                             radiant.Won = playerHasWon;
                         }
+                        else           // dire
+                        {
+                            dire.AddPlayer(new Player(accountID, playerElos[accountID]));    // Get the elo from the dictionary
+                            dire.Won = playerHasWon;
+                        }
                     }
+
+                    // Up the amount of matches played, and add the match info to a new match object.
                     amountofMatches++;
                     Match match = new Match(radiant, dire);
 
-                    WriteToFileLogistic(match, "random");
+                    // Write the match info to the logistic.
+                    //WriteToFileLogistic(match, "random");
 
                     UpdateElo(match);
                 }
@@ -111,12 +117,15 @@ namespace DOTA2EloCalculator
 
             Console.WriteLine("Amount of unique players: " + amountofPlayers);
             Console.WriteLine("Amount of matches: " + amountofMatches);
-            Console.WriteLine("Mean: " + CalculateMean());
+            double mean = CalculateMean();
+            Console.WriteLine("Mean: " + mean);
+            Console.WriteLine("Variance: " + CalculateVariance(mean));
             Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
             Console.WriteLine("Number of lines: " + numberOfLines);
             Console.ReadKey();
         }
 
+        // Calculate and update the elo rating for the teams.
         static void UpdateElo(Match match)
         {
             if (match.Radiant.AverageElo == 0.0 || match.Dire.AverageElo == 0.0)
@@ -164,18 +173,6 @@ namespace DOTA2EloCalculator
             double Ra = Math.Pow(10, a_rating / 400);
             double Rb = Math.Pow(10, b_rating / 400);
             return Ra / (Ra + Rb);
-
-        }
-
-        /// <summary>
-        /// Calculate the standard deviation of the players' ELO rating
-        /// TODO: Eigenlijk sample standard deviation gebruiken (1st Answer: http://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list )
-        /// </summary>
-        /// <returns>The standard deviation of the playerElo Dictionary</returns>
-        static double CalculateStandardDeviation()
-        {
-            double average = CalculateMean();
-            return Math.Sqrt(playerElos.Values.Average(v => Math.Pow(v - average, 2)));
         }
 
         /// <summary>
@@ -186,6 +183,32 @@ namespace DOTA2EloCalculator
         {
             double average = playerElos.Values.Average();
             return average;
+        }
+
+        /// <summary>
+        /// Calculate the variance. We use the sample correction for our data.
+        /// </summary>
+        /// <param name="mean"></param>
+        /// <returns></returns>
+        static double CalculateVariance(double mean)
+        {
+            double sum = playerElos.Values.Sum(v => Math.Pow(v - mean, 2));
+            double variance = sum / (playerElos.Values.Count - 1);
+            return variance;
+        }
+
+        /// <summary>
+        /// Calculate the standard deviation of the players' ELO rating
+        /// TODO: Eigenlijk sample standard deviation gebruiken (1st Answer: http://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list )
+        /// </summary>
+        /// <returns>The standard deviation of the playerElo Dictionary</returns>
+        static double CalculateStandardDeviation()
+        {
+            double average = CalculateMean();
+            double variance = CalculateVariance(average);
+            double deviation = Math.Sqrt(variance);
+
+            return deviation;
         }
 
         const string outputfolder = @"D:\Downloads\matches";
