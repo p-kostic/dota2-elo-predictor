@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Windows.Markup;
 
@@ -14,7 +15,7 @@ namespace DOTA2EloCalculator
     class Program
     {
         // A dictionary that stores the Elo rating of a player, using the player as a key.
-        static Dictionary<string, int> playerElos = new Dictionary<string, int>();
+        static Dictionary<string, Player> playerElos = new Dictionary<string, Player>();
 
         // Values to track the amount of players, and the amount of matches.
         static int amountofPlayers = 0;
@@ -23,8 +24,8 @@ namespace DOTA2EloCalculator
         static void Main(string[] args)
         {
             // Use a streamreader to read te file.
-            string path = @"filtered100k.json";
-
+            string path = @"D:\Downloads\matches\filteredAll.json";
+        
             #region InitializeBacktesting
             // Check the amount of lines, so we can quite reading when needed (used for backtesting).
             long numberOfLines = 0;
@@ -71,7 +72,7 @@ namespace DOTA2EloCalculator
                         // doesn't exist, we make a new entry in the dictionary with a basic elo of 1000.
                         if (!playerElos.ContainsKey(accountID))
                         {
-                            playerElos.Add(accountID, 1000);
+                            playerElos.Add(accountID, new Player(accountID, 1000));
                             amountofPlayers++;
                         }
 
@@ -88,12 +89,12 @@ namespace DOTA2EloCalculator
                         // Add the player to the corresponding team.
                         if (playerTeam) // radiant
                         {
-                            radiant.AddPlayer(new Player(accountID, playerElos[accountID])); // Get the elo from the dictionary
+                            radiant.AddPlayer(new Player(accountID, playerElos[accountID].elo)); // Get the elo from the dictionary
                             radiant.Won = playerHasWon;
                         }
                         else           // dire
                         {
-                            dire.AddPlayer(new Player(accountID, playerElos[accountID]));    // Get the elo from the dictionary
+                            dire.AddPlayer(new Player(accountID, playerElos[accountID].elo));    // Get the elo from the dictionary
                             dire.Won = playerHasWon;
                         }
                     }
@@ -102,8 +103,11 @@ namespace DOTA2EloCalculator
                     amountofMatches++;
                     Match match = new Match(radiant, dire);
 
+                    // Update the player's amount of matches played
+                    UpdatePlayerMatchCount(match);
+
                     // Write the match info to the logistic.
-                    //WriteToFileLogistic(match, "random");
+                    WriteToFileLogistic(match, "random2");
 
                     UpdateElo(match);
                 }
@@ -111,16 +115,16 @@ namespace DOTA2EloCalculator
 
             foreach (var entry in playerElos)
             {
-                if (entry.Value > 1200) // test om te zien of er wel players zijn die een beetje veel winnen
-                    Console.WriteLine("id: {0} Elo: {1}", entry.Key, entry.Value);
+                if (entry.Value.elo > 1200) // test om te zien of er wel players zijn die een beetje veel winnen
+                    Console.WriteLine("id: {0} Elo: {1}", entry.Key, entry.Value.elo);
             }
 
             Console.WriteLine("Amount of unique players: " + amountofPlayers);
             Console.WriteLine("Amount of matches: " + amountofMatches);
-            double mean = CalculateMean();
-            Console.WriteLine("Mean: " + mean);
-            Console.WriteLine("Variance: " + CalculateVariance(mean));
-            Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
+            //double mean = CalculateMean();
+            //Console.WriteLine("Mean: " + mean);
+            //Console.WriteLine("Variance: " + CalculateVariance(mean));
+            //Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
             Console.WriteLine("Number of lines: " + numberOfLines);
             WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
             Console.ReadKey();
@@ -157,8 +161,8 @@ namespace DOTA2EloCalculator
             // Give each player the rating 
             for (int i = 0; i < 5; i++)
             {
-                playerElos[match.Radiant.Players[i].account_id] += (int)ratingChangeRadiant;
-                playerElos[match.Dire.Players[i].account_id] += (int)ratingChangeDire;
+                playerElos[match.Radiant.Players[i].account_id].elo += (int)ratingChangeRadiant;
+                playerElos[match.Dire.Players[i].account_id].elo += (int)ratingChangeDire;
             }
         }
 
@@ -180,37 +184,37 @@ namespace DOTA2EloCalculator
         /// Calculate the mean (average) ELO of all players
         /// </summary>
         /// <returns>The mean of the playerElo Dictionary</returns>
-        static double CalculateMean()
-        {
-            double average = playerElos.Values.Average();
-            return average;
-        }
+        //static double CalculateMean()
+        //{
+        //    double average = playerElos.Values.Average();
+        //    return average;
+        //}
 
         /// <summary>
         /// Calculate the variance. We use the sample correction for our data.
         /// </summary>
         /// <param name="mean"></param>
         /// <returns></returns>
-        static double CalculateVariance(double mean)
-        {
-            double sum = playerElos.Values.Sum(v => Math.Pow(v - mean, 2));
-            double variance = sum / (playerElos.Values.Count - 1);
-            return variance;
-        }
+        //static double CalculateVariance(double mean)
+        //{
+        //    double sum = playerElos.Values.Sum(v => Math.Pow(v - mean, 2));
+        //    double variance = sum / (playerElos.Values.Count - 1);
+        //    return variance;
+        //}
 
         /// <summary>
         /// Calculate the standard deviation of the players' ELO rating
         /// TODO: Eigenlijk sample standard deviation gebruiken (1st Answer: http://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list )
         /// </summary>
         /// <returns>The standard deviation of the playerElo Dictionary</returns>
-        static double CalculateStandardDeviation()
-        {
-            double average = CalculateMean();
-            double variance = CalculateVariance(average);
-            double deviation = Math.Sqrt(variance);
+        //static double CalculateStandardDeviation()
+        //{
+        //    double average = CalculateMean();
+        //    double variance = CalculateVariance(average);
+        //    double deviation = Math.Sqrt(variance);
 
-            return deviation;
-        }
+        //    return deviation;
+        //}
 
         const string outputfolder = @"C:\Users\Mark Berentsen\Documents\School";
         static void WriteToFileLogistic(Match match, string filename)
@@ -221,18 +225,41 @@ namespace DOTA2EloCalculator
 
             double eloDifference = eloRadiant - eloDire;
 
-            char outcome = 'X';
+            bool validMatchesPlayed = false;
 
-            if (match.Radiant.Won)
-                outcome = '1';
-            if (match.Dire.Won)
-                outcome = '0';
 
-            string text = string.Format("{0};{1}", eloDifference, outcome);
+            // Check if all players in the match have played more than one matches, this means it has a significance
+            for (int i = 0; i < 5; i++)
+            {
+                if (playerElos[match.Radiant.Players[i].account_id].AmountOfMatches < 90 && playerElos[match.Dire.Players[i].account_id].AmountOfMatches < 90)
+                    validMatchesPlayed = false;
+                else validMatchesPlayed = true;
+            }
 
-            string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
-            using (StreamWriter sw = new StreamWriter(path, true))
-                sw.WriteLine(text);
+            if (eloDifference != 0 && validMatchesPlayed)
+            {
+                char outcome = 'X';
+
+                if (match.Radiant.Won)
+                    outcome = '1';
+                if (match.Dire.Won)
+                    outcome = '0';
+
+                string text = string.Format("{0};{1}", eloDifference, outcome);
+
+                string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
+                using (StreamWriter sw = new StreamWriter(path, true))
+                    sw.WriteLine(text);
+            }
+        }
+
+        static void UpdatePlayerMatchCount(Match match)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                playerElos[match.Radiant.Players[i].account_id].AmountOfMatches++;
+                playerElos[match.Dire.Players[i].account_id].AmountOfMatches++;
+            }
         }
 
         static void WriteToFileStandardDeviation(double deviation, string filename)

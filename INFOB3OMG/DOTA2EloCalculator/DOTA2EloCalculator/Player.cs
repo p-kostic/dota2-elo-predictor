@@ -10,11 +10,13 @@ namespace DOTA2EloCalculator
     {
         public string account_id;
         public int elo;
+        public int AmountOfMatches;
 
         public Player(string account_id, int elo)
         {
             this.account_id = account_id;
             this.elo = elo;
+            this.AmountOfMatches = 0;
         }
     }
 }
