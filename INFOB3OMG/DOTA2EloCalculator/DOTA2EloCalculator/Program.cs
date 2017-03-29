@@ -14,7 +14,7 @@ namespace DOTA2EloCalculator
 {
     class Program
     {
-        // A dictionary that stores the Elo rating of a player, using the player as a key.
+        // A dictionary that stores information of the player, using the account_id as a key
         static Dictionary<string, Player> playerElos = new Dictionary<string, Player>();
 
         // Values to track the amount of players, and the amount of matches.
@@ -107,7 +107,7 @@ namespace DOTA2EloCalculator
                     UpdatePlayerMatchCount(match);
 
                     // Write the match info to the logistic.
-                    WriteToFileLogistic(match, "random2");
+                    WriteToFileLogistic(match, "statOutcome80");
 
                     UpdateElo(match);
                 }
@@ -126,7 +126,7 @@ namespace DOTA2EloCalculator
             //Console.WriteLine("Variance: " + CalculateVariance(mean));
             //Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
             Console.WriteLine("Number of lines: " + numberOfLines);
-            WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
+            //WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
             Console.ReadKey();
         }
 
@@ -137,12 +137,12 @@ namespace DOTA2EloCalculator
                 throw new Exception("Radiant or Dire team do not have an AverageElo assigned, team size not 5");
 
             // Calculate the transformed rating of each team using their average elo
-            double transformedRadiant = Math.Pow(10, match.Radiant.AverageElo / 400);
-            double transformedDire = Math.Pow(10, match.Dire.AverageElo / 400);
 
-            // Calculate the expected score of each team using their average elo
-            double expectedScoreRadiant = transformedRadiant / (transformedRadiant + transformedDire);
-            double expectedScoreDire = transformedDire / (transformedRadiant + transformedDire);
+            var powerA = (match.Dire.AverageElo - match.Radiant.AverageElo);
+            var powerB = (match.Radiant.AverageElo - match.Dire.AverageElo);
+
+            double expectedRadiant = 1 / (1 + Math.Pow(10, powerA / 400));
+            double expectedDire = 1 / (1 + Math.Pow(10, powerB / 400));
 
             // Calculate the S value for each team
             int s1 = 0;
@@ -154,9 +154,9 @@ namespace DOTA2EloCalculator
             else throw new Exception("Nobody won?" + match.Dire.Won + match.Radiant.Won);
 
             // Calculate the updated Elo-rating for each team
-            int K = 40;
-            double ratingChangeRadiant = K * (s1 - expectedScoreRadiant);
-            double ratingChangeDire = K * (s2 - expectedScoreDire);
+            int K = 80;
+            double ratingChangeRadiant = K * (s1 - expectedRadiant);
+            double ratingChangeDire = K * (s2 - expectedDire);
 
             // Give each player the rating 
             for (int i = 0; i < 5; i++)
@@ -165,21 +165,6 @@ namespace DOTA2EloCalculator
                 playerElos[match.Dire.Players[i].account_id].elo += (int)ratingChangeDire;
             }
         }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="a_rating"></param>
-        /// <param name="b_rating"></param>
-        /// <returns></returns>
-        static double WinProb(int a_rating, int b_rating)
-        {
-            double Ra = Math.Pow(10, a_rating / 400);
-            double Rb = Math.Pow(10, b_rating / 400);
-            return Ra / (Ra + Rb);
-        }
-
         /// <summary>
         /// Calculate the mean (average) ELO of all players
         /// </summary>
@@ -216,22 +201,20 @@ namespace DOTA2EloCalculator
         //    return deviation;
         //}
 
-        const string outputfolder = @"C:\Users\Mark Berentsen\Documents\School";
+        const string outputfolder = @"D:\Downloads\matches";
         static void WriteToFileLogistic(Match match, string filename)
         {
             // Calculate ELO difference (Radiant - Dire)
             double eloDire = match.Dire.AverageElo;
             double eloRadiant = match.Radiant.AverageElo;
-
             double eloDifference = eloRadiant - eloDire;
 
             bool validMatchesPlayed = false;
 
-
-            // Check if all players in the match have played more than one matches, this means it has a significance
+            // Check if all players in the match have played more than 100 matches, this means it has a significance
             for (int i = 0; i < 5; i++)
             {
-                if (playerElos[match.Radiant.Players[i].account_id].AmountOfMatches < 90 && playerElos[match.Dire.Players[i].account_id].AmountOfMatches < 90)
+                if (playerElos[match.Radiant.Players[i].account_id].AmountOfMatches < 100 && playerElos[match.Dire.Players[i].account_id].AmountOfMatches < 100)
                     validMatchesPlayed = false;
                 else validMatchesPlayed = true;
             }
@@ -239,14 +222,12 @@ namespace DOTA2EloCalculator
             if (eloDifference != 0 && validMatchesPlayed)
             {
                 char outcome = 'X';
-
                 if (match.Radiant.Won)
                     outcome = '1';
                 if (match.Dire.Won)
                     outcome = '0';
 
                 string text = string.Format("{0};{1}", eloDifference, outcome);
-
                 string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
                 using (StreamWriter sw = new StreamWriter(path, true))
                     sw.WriteLine(text);
@@ -262,44 +243,44 @@ namespace DOTA2EloCalculator
             }
         }
 
-        static void WriteToFileStandardDeviation(double deviation, string filename)
-        {
-            double average = CalculateMean();
+        //static void WriteToFileStandardDeviation(double deviation, string filename)
+        //{
+        //    double average = CalculateMean();
 
-            #region CalculateRanges
-            double[] ranges = new double[7];
-            ranges[3] = average;
-            for (int i = 2; i >= 0; i--)
-                ranges[i] = ranges[i + 1] - deviation;
-            for (int i = 4; i <= 6; i++)
-                ranges[i] = ranges[i - 1] + deviation;
-            #endregion
+        //    #region CalculateRanges
+        //    double[] ranges = new double[7];
+        //    ranges[3] = average;
+        //    for (int i = 2; i >= 0; i--)
+        //        ranges[i] = ranges[i + 1] - deviation;
+        //    for (int i = 4; i <= 6; i++)
+        //        ranges[i] = ranges[i - 1] + deviation;
+        //    #endregion
 
-            int[] population = new int[8];
-            foreach (int elos in playerElos.Values)
-            {
-                if (elos < ranges[0])
-                    population[0] += 1;
-                else if (elos >= ranges[6])
-                    population[7] += 1;
-                else
-                {
-                    for (int i = 0; i < 6; i++)
-                        if (elos >= ranges[i] && elos < ranges[i + 1])
-                            population[i + 1] += 1;
-                }
-            }
+        //    int[] population = new int[8];
+        //    foreach (int elos in playerElos.Values)
+        //    {
+        //        if (elos < ranges[0])
+        //            population[0] += 1;
+        //        else if (elos >= ranges[6])
+        //            population[7] += 1;
+        //        else
+        //        {
+        //            for (int i = 0; i < 6; i++)
+        //                if (elos >= ranges[i] && elos < ranges[i + 1])
+        //                    population[i + 1] += 1;
+        //        }
+        //    }
 
-            double[] percentages = new double[8];
+        //    double[] percentages = new double[8];
 
-            for (int i = 0; i < population.Length; i++)
-                percentages[i] = (double)population[i] / (double)amountofPlayers * 100;
+        //    for (int i = 0; i < population.Length; i++)
+        //        percentages[i] = (double)population[i] / (double)amountofPlayers * 100;
 
-            string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
-            using (StreamWriter sw = new StreamWriter(path, true))
-                for (int i = 0; i < percentages.Length; i++)
-                    sw.WriteLine(string.Format("Current range: {0}, percentage: {1}%", i, percentages[i]));
-        }
+        //    string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
+        //    using (StreamWriter sw = new StreamWriter(path, true))
+        //        for (int i = 0; i < percentages.Length; i++)
+        //            sw.WriteLine(string.Format("Current range: {0}, percentage: {1}%", i, percentages[i]));
+        //}
 
         // TODO: Accuracy van matches die we gaan predicten uitrekenen
         // TODO: Logaritmic loss: https://www.kaggle.com/wiki/LogLoss ??? en Logarithmic regression voor de paper

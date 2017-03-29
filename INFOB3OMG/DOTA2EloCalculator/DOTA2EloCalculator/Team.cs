@@ -31,6 +31,10 @@ namespace DOTA2EloCalculator
                     accumulator += p.elo;
                 AverageElo = accumulator / 5;
             }
+            else if (Players.Count > 5)
+            {
+                throw new Exception("This team has more than 5 players");
+            }
         }
     }
 }
