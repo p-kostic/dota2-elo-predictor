@@ -126,7 +126,8 @@ namespace DOTA2EloCalculator
             //Console.WriteLine("Variance: " + CalculateVariance(mean));
             //Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
             Console.WriteLine("Number of lines: " + numberOfLines);
-            WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
+            WriteToFileElos("allelos");
+            //WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
             Console.ReadKey();
         }
 
@@ -253,6 +254,14 @@ namespace DOTA2EloCalculator
             }
         }
 
+        static void WriteToFileElos(string filename)
+        {
+            string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
+            using (StreamWriter sw = new StreamWriter(path, true))
+                foreach (var elos in playerElos)
+                    sw.WriteLine(elos.Value.elo);
+        }
+
         static void UpdatePlayerMatchCount(Match match)
         {
             for (int i = 0; i < 5; i++)
@@ -262,44 +271,44 @@ namespace DOTA2EloCalculator
             }
         }
 
-        static void WriteToFileStandardDeviation(double deviation, string filename)
-        {
-            double average = CalculateMean();
+        //static void WriteToFileStandardDeviation(double deviation, string filename)
+        //{
+        //    double average = CalculateMean();
 
-            #region CalculateRanges
-            double[] ranges = new double[7];
-            ranges[3] = average;
-            for (int i = 2; i >= 0; i--)
-                ranges[i] = ranges[i + 1] - deviation;
-            for (int i = 4; i <= 6; i++)
-                ranges[i] = ranges[i - 1] + deviation;
-            #endregion
+        //    #region CalculateRanges
+        //    double[] ranges = new double[7];
+        //    ranges[3] = average;
+        //    for (int i = 2; i >= 0; i--)
+        //        ranges[i] = ranges[i + 1] - deviation;
+        //    for (int i = 4; i <= 6; i++)
+        //        ranges[i] = ranges[i - 1] + deviation;
+        //    #endregion
 
-            int[] population = new int[8];
-            foreach (int elos in playerElos.Values)
-            {
-                if (elos < ranges[0])
-                    population[0] += 1;
-                else if (elos >= ranges[6])
-                    population[7] += 1;
-                else
-                {
-                    for (int i = 0; i < 6; i++)
-                        if (elos >= ranges[i] && elos < ranges[i + 1])
-                            population[i + 1] += 1;
-                }
-            }
+        //    int[] population = new int[8];
+        //    foreach (int elos in playerElos.Values)
+        //    {
+        //        if (elos < ranges[0])
+        //            population[0] += 1;
+        //        else if (elos >= ranges[6])
+        //            population[7] += 1;
+        //        else
+        //        {
+        //            for (int i = 0; i < 6; i++)
+        //                if (elos >= ranges[i] && elos < ranges[i + 1])
+        //                    population[i + 1] += 1;
+        //        }
+        //    }
 
-            double[] percentages = new double[8];
+        //    double[] percentages = new double[8];
 
-            for (int i = 0; i < population.Length; i++)
-                percentages[i] = (double)population[i] / (double)amountofPlayers * 100;
+        //    for (int i = 0; i < population.Length; i++)
+        //        percentages[i] = (double)population[i] / (double)amountofPlayers * 100;
 
-            string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
-            using (StreamWriter sw = new StreamWriter(path, true))
-                for (int i = 0; i < percentages.Length; i++)
-                    sw.WriteLine(string.Format("Current range: {0}, percentage: {1}%", i, percentages[i]));
-        }
+        //    string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
+        //    using (StreamWriter sw = new StreamWriter(path, true))
+        //        for (int i = 0; i < percentages.Length; i++)
+        //            sw.WriteLine(string.Format("Current range: {0}, percentage: {1}%", i, percentages[i]));
+        //}
 
         // TODO: Accuracy van matches die we gaan predicten uitrekenen
         // TODO: Logaritmic loss: https://www.kaggle.com/wiki/LogLoss ??? en Logarithmic regression voor de paper
