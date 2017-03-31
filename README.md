@@ -1,9 +1,22 @@
 # INFOB3OMG
-Onderzoeksmethoden voor gametech
+We took the "[INFOB3OMG] Research methods for game technology" course at Utrecht University. Our research question was whether the Elo rating system could be used to predict the outcome of the popular multiplayer game Dota 2. The final report can be found in the repository above. This GitHub Readme.md is essentially the Supplementary Online Material and it contains additional statistical analysis that weren't included in the final report.
+
+The report contains some [controversial](http://stats.stackexchange.com/questions/3559/which-pseudo-r2-measure-is-the-one-to-report-for-logistic-regression-cox-s) values, in particular pseudo-R^2 and p-values. Since a presentation will be given to students that might have a no background, these values made it to our report.
 
 
 
-Statistic Procedures in R
+### Statistical Analysis
+This section will be updated very soon.
+
+### Raw data
+Magnet link to raw match data in tar -zcvf (gzip) format, including a sample of what the data looks like.
+If only `x` of matches is needed, use `zcat rawMatches.tar.gz | head -x > newfile.json` to decompress the first `x` number of matches 
+```
+magnet:?xt=urn:btih:3e862a0f2073ae76a66c4f054c2fe6c45c80ea19&dn=raw+match+data
+```
+If nobody is seeding, contact me: snookik@gmail.com
+
+### Statistic Procedures in R
 ``` R
 #read the file
 mydata = read.csv("path", sep = ";")
@@ -77,7 +90,7 @@ library(car)
 Anova(model, type="II", test="Wald")
 
 
-######### MISSCELANOIUS FUNCTIONS ########
+######### Additional fUNCTIONS ########
 
 #apply logistic regression with library
 library(popbio)
