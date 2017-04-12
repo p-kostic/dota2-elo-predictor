@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DOTA2EloCalculator
 {
+    // This class holds a team of players, and their average Elo rating.
     public class Team
     {
         public List<Player> Players;

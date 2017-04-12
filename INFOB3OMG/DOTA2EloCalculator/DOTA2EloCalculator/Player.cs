@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace DOTA2EloCalculator
 {
+    // This class holds the account id, 
+    // Elo rating and the amount of matches played for a specific player.
     public class Player
     {
         public string account_id;

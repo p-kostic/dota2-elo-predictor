@@ -17,7 +17,7 @@ namespace DOTA2MatchScraper
             int[] allowedGamemodes = new int[7] { 1, 2, 3, 4, 5, 12, 16 };
 
             // Use a streamreader to read te file.
-            using (FileStream fs = File.Open("D:\\Downloads\\matches\\dumpAll.json",
+            using (FileStream fs = File.Open(@"D:\Downloads\matches\dumpAll.json",
                 FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (BufferedStream bs = new BufferedStream(fs))
             using (StreamReader sr = new StreamReader(bs))
@@ -89,13 +89,14 @@ namespace DOTA2MatchScraper
 
                     // If the match passed all the tests, write it to the output file.
                     using (System.IO.StreamWriter file =
-                        new System.IO.StreamWriter("D:\\Downloads\\matches\\filteredAll.json", true))
+                        new System.IO.StreamWriter(@"D:\Downloads\matches\filteredAll.json", true))
                     {
                         file.WriteLine(line);
                     }
                 }
             }
 
+            // Write the output to the console.s
             Console.WriteLine("The total amount of matches is: " + numberMatches);
             Console.WriteLine("The amount of rejected matches is: " + numberRejectedMatches);
             Console.ReadKey();

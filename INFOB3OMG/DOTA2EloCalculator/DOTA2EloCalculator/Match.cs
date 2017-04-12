@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DOTA2EloCalculator
 {
+    // This class Holds the data for a match, and what team has won in the match.
     class Match
     {
         public Team Radiant { get; set; }

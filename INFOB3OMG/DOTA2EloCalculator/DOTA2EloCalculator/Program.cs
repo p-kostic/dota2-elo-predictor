@@ -14,7 +14,7 @@ namespace DOTA2EloCalculator
 {
     class Program
     {
-        // A dictionary that stores information of the player, using the account_id as a key
+        // A dictionary that stores information of the player, using the account_id as a key.
         static Dictionary<string, Player> playerElos = new Dictionary<string, Player>();
 
         // Values to track the amount of players, and the amount of matches.
@@ -84,7 +84,6 @@ namespace DOTA2EloCalculator
                         // We can now check if the player has won if we combine the variables.
                         bool playerTeam = (playerSlot & 128) != 128;
                         bool playerHasWon = (radiantWin && playerTeam) || (!radiantWin && !playerTeam);
-                        // int winStatus = Convert.ToInt32(playerHasWon);
 
                         // Add the player to the corresponding team.
                         if (playerTeam) // radiant
@@ -103,35 +102,32 @@ namespace DOTA2EloCalculator
                     amountofMatches++;
                     Match match = new Match(radiant, dire);
 
-                    // Update the player's amount of matches played
+                    // Update the player's amount of matches played.
                     UpdatePlayerMatchCount(match);
 
                     // Write the match info to the logistic.
                     WriteToFileLogistic(match, "statOutcomeFinal");
 
+                    // Update the elo for the players of this specific match.
                     UpdateElo(match);
                 }
             }
 
+            #region Output
+            // A test to see if we have players who seem to be winning often.
             foreach (var entry in playerElos)
             {
-                if (entry.Value.elo > 1200) // test om te zien of er wel players zijn die een beetje veel winnen
+                if (entry.Value.elo > 1200)
                     Console.WriteLine("id: {0} Elo: {1}", entry.Key, entry.Value.elo);
             }
 
+            // Write the output to the console.
             Console.WriteLine("Amount of unique players: " + amountofPlayers);
             Console.WriteLine("Amount of matches: " + amountofMatches);
-            //double mean = CalculateMean();
-            //Console.WriteLine("Mean: " + mean);
-            //Console.WriteLine("Variance: " + CalculateVariance(mean));
-            //Console.WriteLine("Standard Deviation: " + CalculateStandardDeviation());
             Console.WriteLine("Number of lines: " + numberOfLines);
-<<<<<<< HEAD
-            WriteToFileElos("allelos");
-=======
->>>>>>> origin/master
-            //WriteToFileStandardDeviation(CalculateStandardDeviation(), "standardDevTest");
+            WriteToFileElos("all_elos");
             Console.ReadKey();
+            #endregion
         }
 
         // Calculate and update the elo rating for the teams.
@@ -140,15 +136,14 @@ namespace DOTA2EloCalculator
             if (match.Radiant.AverageElo == 0.0 || match.Dire.AverageElo == 0.0)
                 throw new Exception("Radiant or Dire team do not have an AverageElo assigned, team size not 5");
 
-            // Calculate the transformed rating of each team using their average elo
-
+            // Calculate the transformed rating of each team using their average elo.
             var powerA = (match.Dire.AverageElo - match.Radiant.AverageElo);
             var powerB = (match.Radiant.AverageElo - match.Dire.AverageElo);
 
             double expectedRadiant = 1 / (1 + Math.Pow(10, powerA / 400));
             double expectedDire = 1 / (1 + Math.Pow(10, powerB / 400));
 
-            // Calculate the S value for each team
+            // Calculate the S value for each team.
             int s1 = 0;
             int s2 = 0;
             if (match.Radiant.Won && !match.Dire.Won)
@@ -157,65 +152,31 @@ namespace DOTA2EloCalculator
                 s2 = 1;
             else throw new Exception("Nobody won?" + match.Dire.Won + match.Radiant.Won);
 
-            // Calculate the updated Elo-rating for each team
+            // Calculate the updated Elo-rating for each team.
             int K = 40;
             double ratingChangeRadiant = K * (s1 - expectedRadiant);
             double ratingChangeDire = K * (s2 - expectedDire);
 
-            // Give each player the rating 
+            // Give each player the rating.
             for (int i = 0; i < 5; i++)
             {
                 playerElos[match.Radiant.Players[i].account_id].elo += (int)ratingChangeRadiant;
                 playerElos[match.Dire.Players[i].account_id].elo += (int)ratingChangeDire;
             }
         }
-        /// <summary>
-        /// Calculate the mean (average) ELO of all players
-        /// </summary>
-        /// <returns>The mean of the playerElo Dictionary</returns>
-        //static double CalculateMean()
-        //{
-        //    double average = playerElos.Values.Average();
-        //    return average;
-        //}
 
-        /// <summary>
-        /// Calculate the variance. We use the sample correction for our data.
-        /// </summary>
-        /// <param name="mean"></param>
-        /// <returns></returns>
-        //static double CalculateVariance(double mean)
-        //{
-        //    double sum = playerElos.Values.Sum(v => Math.Pow(v - mean, 2));
-        //    double variance = sum / (playerElos.Values.Count - 1);
-        //    return variance;
-        //}
-
-        /// <summary>
-        /// Calculate the standard deviation of the players' ELO rating
-        /// TODO: Eigenlijk sample standard deviation gebruiken (1st Answer: http://stackoverflow.com/questions/3141692/standard-deviation-of-generic-list )
-        /// </summary>
-        /// <returns>The standard deviation of the playerElo Dictionary</returns>
-        //static double CalculateStandardDeviation()
-        //{
-        //    double average = CalculateMean();
-        //    double variance = CalculateVariance(average);
-        //    double deviation = Math.Sqrt(variance);
-
-        //    return deviation;
-        //}
-
+        // Write the Logistics to a file, so we can export the data to a graph.
         const string outputfolder = @"D:\Downloads\matches";
         static void WriteToFileLogistic(Match match, string filename)
         {
-            // Calculate ELO difference (Radiant - Dire)
+            // Calculate ELO difference (Radiant - Dire).
             double eloDire = match.Dire.AverageElo;
             double eloRadiant = match.Radiant.AverageElo;
             double eloDifference = eloRadiant - eloDire;
 
             bool validMatchesPlayed = false;
 
-            // Check if all players in the match have played more than 100 matches, this means it has a significance
+            // Check if all players in the match have played more than 100 matches, this means it has a significance.
             for (int i = 0; i < 5; i++)
             {
                 if (playerElos[match.Radiant.Players[i].account_id].AmountOfMatches < 100 && playerElos[match.Dire.Players[i].account_id].AmountOfMatches < 100)
@@ -223,6 +184,7 @@ namespace DOTA2EloCalculator
                 else validMatchesPlayed = true;
             }
 
+            // Based on the outcome we write a 1 or 0, and write this for each of the matches to the file.
             if (eloDifference != 0 && validMatchesPlayed)
             {
                 char outcome = 'X';
@@ -238,6 +200,7 @@ namespace DOTA2EloCalculator
             }
         }
 
+        // This method writes all the elo ratings per player to a file. (Used for standard deviation).
         static void WriteToFileElos(string filename)
         {
             string path = string.Format(@"{0}\{1}.csv", outputfolder, filename);
@@ -246,6 +209,7 @@ namespace DOTA2EloCalculator
                     sw.WriteLine(elos.Value.elo);
         }
 
+        // Update the match count for a specific match.
         static void UpdatePlayerMatchCount(Match match)
         {
             for (int i = 0; i < 5; i++)
@@ -255,6 +219,36 @@ namespace DOTA2EloCalculator
             }
         }
 
+        #region OldCode_StandardDeviation
+        /// Calculate the mean (average) ELO of all players
+        //static double CalculateMean()
+        //{
+        //    double average = playerElos.Values.Average();
+        //    return average;
+        //}
+
+
+        /// Calculate the variance. We use the sample correction for our data.
+        //static double CalculateVariance(double mean)
+        //{
+        //    double sum = playerElos.Values.Sum(v => Math.Pow(v - mean, 2));
+        //    double variance = sum / (playerElos.Values.Count - 1);
+        //    return variance;
+        //}
+
+        /// Calculate the standard deviation of the players' ELO rating
+        //static double CalculateStandardDeviation()
+        //{
+        //    double average = CalculateMean();
+        //    double variance = CalculateVariance(average);
+        //    double deviation = Math.Sqrt(variance);
+
+        //    return deviation;
+        //}
+        #endregion
+
+        #region OldCode_WriteStandardDevation_ToFile
+        /// This method writes the standard deviation to a file, giving the percentages of players in a specific region as well.
         //static void WriteToFileStandardDeviation(double deviation, string filename)
         //{
         //    double average = CalculateMean();
@@ -293,15 +287,6 @@ namespace DOTA2EloCalculator
         //        for (int i = 0; i < percentages.Length; i++)
         //            sw.WriteLine(string.Format("Current range: {0}, percentage: {1}%", i, percentages[i]));
         //}
-
-        // TODO: Accuracy van matches die we gaan predicten uitrekenen
-        // TODO: Logaritmic loss: https://www.kaggle.com/wiki/LogLoss ??? en Logarithmic regression voor de paper
-
-        // TODO: Variables voor models: Elo_Diff  The ELO rating difference between the two teams at the start of the match.
-        // Calculated by subtracting the away team ELO rating from the home team ELO rating.A
-        // positive value means that the home team is deemed stronger, while a negative value
-        // means that the away team is deemed stronger
-
-
+        #endregion
     }
 }
