@@ -107,7 +107,7 @@ namespace DOTA2EloCalculator
                     UpdatePlayerMatchCount(match);
 
                     // Write the match info to the logistic.
-                    WriteToFileLogistic(match, "statOutcome80");
+                    WriteToFileLogistic(match, "statOutcomeFinal");
 
                     UpdateElo(match);
                 }
@@ -158,7 +158,7 @@ namespace DOTA2EloCalculator
             else throw new Exception("Nobody won?" + match.Dire.Won + match.Radiant.Won);
 
             // Calculate the updated Elo-rating for each team
-            int K = 80;
+            int K = 40;
             double ratingChangeRadiant = K * (s1 - expectedRadiant);
             double ratingChangeDire = K * (s2 - expectedDire);
 
