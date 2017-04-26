@@ -3,7 +3,7 @@ We took the "[INFOB3OMG] Research methods for game technology" course at Utrecht
 
 The report contains some [controversial](http://stats.stackexchange.com/questions/3559/which-pseudo-r2-measure-is-the-one-to-report-for-logistic-regression-cox-s) values, in particular pseudo-R^2 and p-values. Since a presentation will be given to students that might have  no background in statistics, these values made it to our report.
 
-*Note: We are aware the report contains some grammar and spelling mistakes, but since it is already past the deadline for the course, we will not change it here.*
+
 ### Statistical Analysis
 This section will be updated with explanations very soon.
 #### Coefficients and exponentiated cofficients
