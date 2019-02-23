@@ -1,7 +1,7 @@
 # INFOB3OMG
-[![GitHub issues](https://img.shields.io/github/issues/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/INFOB3OMG/issues)
-[![GitHub forks](https://img.shields.io/github/forks/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/INFOB3OMG/network)
-[![GitHub stars](https://img.shields.io/github/stars/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/INFOB3OMG/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/dota2-elo-predictor/issues)
+[![GitHub forks](https://img.shields.io/github/forks/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/dota2-elo-predictor/network)
+[![GitHub stars](https://img.shields.io/github/stars/p-kostic/INFOB3OMG.svg)](https://github.com/p-kostic/dota2-elo-predictor/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Snookik/INFOB3OMG/master/LICENSE)
 
 We took the "[INFOB3OMG] Research methods for game technology" course at Utrecht University. Our research question was whether the Elo rating system could be used to predict the outcome of the popular multiplayer game Dota 2. The final report can be found in the repository above. This GitHub Readme.md is essentially the Supplementary Online Material and it contains additional statistical analysis that weren't included in the final report.
