@@ -116,7 +116,7 @@ If only `x` of matches is needed, use `zcat rawMatches.tar.gz | head -x > newfil
 ```
 magnet:?xt=urn:btih:3e862a0f2073ae76a66c4f054c2fe6c45c80ea19&dn=raw+match+data
 ```
-If nobody is seeding, contact me: snookik@gmail.com
+If nobody is seeding, contact me: petar@kostic.dev
 
 ### Statistic Procedures in R (that were used for the report).
 #### Reading and splitting the data into train and test set
